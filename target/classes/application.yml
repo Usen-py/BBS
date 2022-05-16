@@ -1,0 +1,15 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: abababa
+    url: jdbc:mysql://localhost:3306/blog?characterEncoding=utf-8
+
+  #设置文件上传最大大小为20MB
+  servlet:
+    multipart:
+      max-file-size: 20MB
+

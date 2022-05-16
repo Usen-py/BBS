@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<!-- 引入editor css -->
+		<!-- <link href="https://cdn.jsdelivr.net/npm/@wangeditor/editor@latest/dist/css/style.css" rel="stylesheet"> -->
+		
+		<!-- 引入editor js -->
+		<!-- <script src="https://cdn.jsdelivr.net/npm/@wangeditor/editor@latest/dist/index.min.js"></script> -->
+		
+		<!-- 引入element-ui样式 -->
+		<!-- <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"> -->
+		
+		
+		
+		<script src="../js/editor.min.js"></script>
+		<link rel="stylesheet" href="../css/editor.css" />
+		<script src="../js/vue.js"></script>
+		
+		
+		
+		<script src="https://unpkg.com/element-ui@2.15.7/lib/index.js"></script>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.7/lib/theme-chalk/index.css" />
+
+		
+		<link rel="stylesheet" href="../css/article_editor.css">
+		
+		<script>
+			var E = window.wangEditor; // 全局变量
+			window.onbeforeunload = function(event){
+				event.returnValue = "确定要离开页面 ?";
+			}
+		</script>
+		
+		<style>
+			.el-tag + .el-tag {
+				margin-left: 10px;
+			}
+			
+			.button-new-tag {
+				margin-left: 10px;
+				height: 32px;
+				line-height: 30px;
+				padding-top: 0;
+				padding-bottom: 0;
+			}
+		</style>
+		
+	</head>
+	<body>
+		
+		
+		<div id="top-container">
+			<div id="toolbar-container"></div>
+		</div>
+		
+		<div id="content">
+			
+			<div id="editor-container">
+				<div id="title-container">
+					<input placeholder="请输入标题...">
+				</div>
+			</div>
+			
+			<div id="app">
+				<div id="article-msg">
+					<label>文章标签:</label>
+					<el-tag v-for="tag in tags" 
+							:key="tag.name" 
+							closable 
+							:disable-transitions="true"
+							:type="tag.type"
+							@close="handleClose(tag)">
+					  {{tag.name}}
+					</el-tag>
+					<el-button  class="button-new-tag" size="small" >+ New Tag</el-button><br /><br/>
+					
+					
+					
+					<label>文章类型:</label>
+					<el-radio-group v-model="type">
+					    <el-radio :label="1">原创</el-radio>
+					    <el-radio :label="2">转载</el-radio>
+					    <el-radio :label="3">翻译</el-radio>
+					 </el-radio-group>
+					 <br/><br/>
+					 
+					<label>发布形式:</label>
+					<el-radio-group v-model="state">
+					    <el-radio :label="1">全部可见</el-radio>
+					    <el-radio :label="2">仅我可见</el-radio>
+					    <el-radio :label="3">vip可见</el-radio>
+					 </el-radio-group>
+					 <br/><br/>
+					 
+					<el-row>
+						<el-button icon="" type="info" @click="save">保存草稿</el-button>
+						<el-button icon="el-icon-upload" type="primary" v-loading.fullscreen.lock="fullscreenLoading" @click="openFullScreen">发布文章</el-button>
+					</el-row>
+				</div>
+			</div>
+			
+			
+		</div>
+		
+	
+	</body>
+	<!--------------------编辑器配置--------------------------------->
+	<script>
+		
+		var edata={}
+		const editorConfig = {
+			excludeKeys: [
+			        'group-video'// 排除菜单组，写菜单组 key 的值即可
+			],
+			placeholder : '请输入内容',
+			MENU_CONF: {
+				uploadImage:{
+					//服务器api
+					server: '/api/upload',
+					// 单个文件上传成功之后
+					onSuccess(file, res) {
+						console.log(`${file.name} 上传成功`, res)
+					},
+					// 单个文件上传失败
+					onFailed(file, res) {
+						console.log(`${file.name} 上传失败`, res)
+					},
+					// 上传错误，或者触发 timeout 超时
+					onError(file, err, res) {
+						console.log(`${file.name} 上传出错`, err, res)
+					},
+					//插入图片之后的回调
+					onInsertedImage(imageNode) {
+						//TODO:使用一个列表存储所有插入的图片
+						
+						if (imageNode == null) return
+				
+						const { src, alt, url, href } = imageNode
+						console.log('inserted image', src, alt, url, href)
+					},
+					// 自定义插入图片
+					customInsert(res, insertFn) {
+						// res 即服务端的返回结果
+						console.log(res.url,res.alt,res.href)
+						// 从 res 中找到 url alt href ，然后插图图片
+						insertFn(url, alt, href)
+					}
+					
+				},
+				editImage:{
+					onUpdatedImage(imageNode) {
+						//TODO:使用一个列表来存储上传过的图片   问题：应该只获取上传成功的
+						//如何获取上传成功了的，但编辑器删除了的图片？
+						//solution： （用所有图片 - 编辑器删除的图片）in (上传成功了的图片)
+						if (imageNode == null) return
+				
+						const { src, alt, url } = imageNode
+						console.log('updated image', src, alt, url)
+					}
+				}
+			},
+			
+			onChange : function(editor){
+			    //内容变化时设置edata的值
+				edata.html = editor.getHtml();
+				edata.text = editor.getText();
+				edata.json =JSON.stringify(editor.children);
+			}
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		// 创建编辑器
+		const editor = E.createEditor({
+		  selector: '#editor-container',
+		  config: editorConfig,
+		  mode: 'default' ,// 或 'simple' 参考下文
+		})
+		// 创建工具栏
+		const toolbar = E.createToolbar({
+		  editor,
+		  selector: '#toolbar-container',
+		  mode: 'default' // 或 'simple' 参考下文
+		})
+	</script>
+	
+	<!-- <script src="https://unpkg.com/vue/dist/vue.js"></script> -->
+	  <!-- import JavaScript -->
+	<!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
+	<!--------------------------vue---------------------------------->
+	<script>
+		
+	
+		
+		const app = new Vue({
+			el: '#app',
+			data: function() {
+				return { 
+					tags: [
+					        { name: '标签一', type: '' },
+					        { name: '标签二', type: 'success' },
+					        { name: '标签三', type: 'info' },
+					        { name: '标签四', type: 'warning' },
+					        { name: '标签五', type: 'danger' }
+					],
+					type:1,
+					state:1,
+					content: edata,
+					fullscreenLoading: false
+					
+				}
+			},
+			methods:{
+				handleClose(tag) {
+				    this.tags.splice(this.tags.indexOf(tag), 1);
+				},
+				openFullScreen() {
+					this.fullscreenLoading = true;
+					setTimeout(() => {
+					  this.fullscreenLoading = false;
+					}, 2000);
+				},
+				save() {
+					this.$message({
+					  showClose: true,
+					  message: '保存成功',
+					  type: 'success',
+					  duration:2000,
+					  center:true
+					});
+				}
+			}
+		})
+		
+	</script>
+</html>

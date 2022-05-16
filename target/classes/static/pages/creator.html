@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script src="../js/vue.js"></script>
+    <script src="../js/axios.js"></script>
+
+    <script src="https://unpkg.com/element-ui@2.15.7/lib/index.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.7/lib/theme-chalk/index.css" />
+    <link rel="stylesheet" href="../css/dynamic.css">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+
+        .view-container{
+            height: calc(100% - 10px);
+            background-color: rgb(245, 245, 245);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* header start */
+        .header-box{
+            position: relative;
+            height: 4rem;
+        }
+
+        .main-header{
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            transition: all .2s;
+            transform: translateZ(0);
+
+            background: #fff;
+            border-bottom: 1px solid #f1f1f1;
+            color: #909090;
+            height: 4rem;
+            z-index: 250;
+        }
+
+        .shadowed{
+            box-shadow: 0 2px 5px rgb(0 0 0 / 10%);
+        }
+        /* header end */
+
+        /*container start*/
+        .container{
+            position: relative;
+            margin: auto;
+            max-width: 1440px;
+
+            display: flex;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+        }
+
+        .main-container{
+            position: relative;
+            margin: 0 auto;
+            width: 100%;
+            max-width:1200px;
+        }
+
+        /*The aside-box is left container */
+        .aside-box{
+            position: fixed;
+            width: 240px;
+            top: 6rem;
+            bottom: 0;
+            background: #fff;
+            z-index: 2;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+
+        .right-wrap{
+            margin: 29px 0 0 264px;
+            width: calc(100% - 264px);
+        }
+
+        .main-content{
+            min-height: calc(100vh - 108px);
+            margin-bottom: 24px;
+            /*background-color: #FFF;*/
+        }
+
+        /*info start*/
+        .info{
+            margin: 20px 0 20px 0;
+        }
+
+
+        .info-avatar{
+            margin-left: 35%;
+        }
+
+        .info-name{
+            text-align: center;
+        }
+
+        .btn-writing{
+            margin: 20px 0 auto 20px;
+            width: calc(100% - 40px);
+        }
+        /*info end*/
+
+        .content{
+            width: 100%;
+            padding: 24px;
+            margin-bottom: 24px;
+            background: #fff;
+        }
+
+        .notice{
+
+        }
+
+        .home-data-box{
+
+        }
+
+        .main-content .content-manager-box{
+            height: 690px;
+            overflow: hidden;
+        }
+
+        .filter-box{
+            width: 100%;
+        }
+
+        .first-filter{
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .filter-item{
+            border-right: 1px solid #e5e6eb;
+            display: inline-block;
+            padding: 0 16px;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 22px;
+            color: #86909c;
+            cursor: pointer;
+        }
+
+        .filter-item:first-child{
+            padding-left: 0;
+        }
+
+        .second-filter{
+            width: 100%;
+            padding: 15px 0;
+        }
+
+        .second-filter-item{
+            display: inline-block;
+            width: calc(20% - 10px);
+            padding: 0 5px;
+        }
+        .second-filter-item:first-child{
+            padding-left: 0;
+        }
+
+
+        .article-data{
+
+        }
+
+
+
+    /*    container end */
+
+    </style>
+
+</head>
+<body>
+
+<div id="app">
+    <div class="view-container">
+        <div class="header-box">
+            <header class="main-header shadowed">
+                <div class="container">header</div>
+            </header>
+        </div>
+
+
+        <div class="container main-container">
+
+            <div class="aside-box">
+                <div class="info">
+                    <div class="info-avatar">
+                        <el-avatar :size="60" :src="avatar" @error="return true;">
+                            <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
+                        </el-avatar>
+                    </div>
+
+                    <div class="info-name">{{uname}}</div>
+
+                    <el-button class="btn-writing" type="primary" size="small" >写文章</el-button>
+                </div>
+                <div>
+                    <el-menu
+                            default-active="1"
+                            class="el-menu-vertical-demo"
+                            @select="handleSelect"
+                            @open="handleOpen"
+                            @close="handleClose">
+                        <el-menu-item index="1">
+                            <i class="el-icon-s-home"></i>
+                            <span slot="title">首页</span>
+                        </el-menu-item>
+
+                        <el-submenu index="2">
+                            <template slot="title">
+                                <i class="el-icon-s-management"></i>
+                                <span>内容管理</span>
+                            </template>
+                            <el-menu-item index="2-1" >文章管理</el-menu-item>
+                            <el-menu-item index="2-2">专栏管理</el-menu-item>
+                            <el-menu-item index="2-3" >沸点管理</el-menu-item>
+                        </el-submenu>
+
+                        <el-submenu index="3">
+                            <template slot="title">
+                                <i class="el-icon-s-data"></i>
+                                <span>数据中心</span>
+                            </template>
+                            <el-menu-item index="3-1">内容数据</el-menu-item>
+                            <el-menu-item index="3-2">关注者数据</el-menu-item>
+                        </el-submenu>
+
+                        <el-submenu index="4">
+                            <template slot="title">
+<!--                                <i class="el-icon-wind-power"></i>-->
+                                <i class="el-icon-s-flag"></i>
+                                <span>活动中心</span>
+                            </template>
+                            <el-menu-item index="4-1">创作活动</el-menu-item>
+                        </el-submenu>
+
+                        <el-submenu index="5">
+                            <template slot="title">
+                                <i class="el-icon-question"></i>
+                                <span>帮助中心</span>
+                            </template>
+                            <el-menu-item index="5-1">常见问题</el-menu-item>
+                        </el-submenu>
+                    </el-menu>
+                </div>
+
+            </div>
+            <div class="right-wrap">
+                <!--TODO: 动态修改内容-->
+                <div class="main-content home" v-if=" showPage(1) " >
+                    <div class="notice content">
+                       <h4>公告</h4>
+                    </div>
+                    <div class="home-data-box content">
+                        <template>
+                            <el-tabs v-model="activeTab" @tab-click="tabClick">
+                                <el-tab-pane label="近期文章" name="first">
+                                    <template>
+                                        <div class="article-box">
+                                            <el-table
+                                                    v-if=" activeTab==='first' "
+                                                    :default-sort = "{prop: 'postTime', order: 'descending'}"
+                                                    :data="recentArticles"
+                                                    style="width: 100%">
+                                                <el-table-column
+                                                        prop="title"
+                                                        label="标题">
+                                                </el-table-column>
+                                                <el-table-column
+                                                        prop="pv"
+                                                        label="浏览量"
+                                                        sortable>
+                                                </el-table-column>
+                                                <el-table-column
+                                                        prop="likes"
+                                                        label="点赞数"
+                                                        sortable>
+                                                </el-table-column>
+                                                <el-table-column
+                                                        prop="postTime"
+                                                        label="时间"
+                                                        sortable>
+                                                </el-table-column>
+                                            </el-table>
+                                        </div>
+                                    </template>
+                                </el-tab-pane>
+                                <el-tab-pane label="近期上传" name="second">近期上传</el-tab-pane>
+                            </el-tabs>
+                        </template>
+                    </div>
+                </div>
+
+                <!--内容管理-->
+                <div class="main-content" v-if=" showPage('2-1') " >
+                    <div class="content-manager-box content">
+                        <template>
+                            <el-tabs v-model="activeTab" @tab-click="tabClick">
+                                <el-tab-pane label="文章" name="first">
+                                    <div class="tabs-content">
+                                        <div class="filter-box">
+                                            <div class="first-filter">
+                                                <span class="filter-item pointer hover-color" @click="">全部(0)</span>
+                                                <span class="filter-item pointer hover-color">已发布(0)</span>
+                                                <span class="filter-item pointer hover-color">审核中(0)</span>
+                                                <span class="filter-item pointer hover-color">未通过(0)</span>
+                                            </div>
+                                            <div class="second-filter">
+                                                <div class="second-filter-item">
+                                                    <el-select v-model="filterYear" placeholder="请选择年" size="small">
+                                                        <el-option
+                                                                v-for="item in yearOptions"
+                                                                :key="item.value"
+                                                                :label="item.label"
+                                                                :value="item.value">
+                                                        </el-option>
+                                                    </el-select>
+                                                </div>
+
+                                                <div class="second-filter-item">
+                                                    <el-select v-model="filterMonth" placeholder="请选择月" size="small">
+                                                        <el-option
+                                                                v-for="item in monthOptions"
+                                                                :key="item.value"
+                                                                :label="item.label"
+                                                                :value="item.value">
+                                                        </el-option>
+                                                    </el-select>
+                                                </div>
+
+                                                <div class="second-filter-item">
+                                                    <el-select v-model="filterType" placeholder="文章类型" size="small">
+                                                        <el-option
+                                                                v-for="item in typeOptions"
+                                                                :key="item.value"
+                                                                :label="item.label"
+                                                                :value="item.value">
+                                                        </el-option>
+                                                    </el-select>
+                                                </div>
+
+                                                <div class="second-filter-item">
+                                                    <el-input placeholder="请输入关键词" v-model="keyWord" size="small"></el-input>
+                                                </div>
+
+                                                <div class="second-filter-item">
+                                                    <el-button type="primary" icon="el-icon-search" size="small">搜索</el-button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="article-data">
+                                            文章
+                                        </div>
+                                    </div>
+                                </el-tab-pane>
+                                <el-tab-pane label="草稿箱" name="second">草稿箱</el-tab-pane>
+                            </el-tabs>
+                        </template>
+                    </div>
+                </div>
+                <div class="main-content" v-if=" showPage('2-2') " >
+                    专栏管理
+                </div>
+                <div class="main-content" v-if=" showPage('2-3') " >
+                    沸点管理
+                </div>
+                <div class="main-content" v-if="elseShow" >
+                    <el-empty description="页面不存在"></el-empty>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+</body>
+
+<script>
+    const app = new Vue({
+        el:'#app',
+        data:function(){
+            return {
+                //用户基本信息
+                userID:2,
+                avatar:"",
+                uname:'xxxxxx',
+
+                //页面切换
+                pages:['1','2-1','2-2','2-3'],
+                currentPage:'1',
+
+                //文章标签页数据
+                activeTab: 'first',
+
+                //表格数据
+                recentArticles:[{
+                    title: "标题一",
+                    pv: 100,
+                    likes: 10,
+                    postTime: "2022-04-03"
+                },{
+                    title: "标题二",
+                    pv: 13476,
+                    likes: 688,
+                    postTime: "2022-01-09"
+                },{
+                    title: "标题三",
+                    pv: 177,
+                    likes: 80,
+                    postTime: "2022-03-03"
+                },{
+                    title: "标题四",
+                    pv: 7464,
+                    likes: 767,
+                    postTime: "2022-05-27"
+                }],
+                //所有文章
+                articles:[],
+                //草稿
+                drafts:[],
+
+                //筛选列表
+                yearOptions:[{
+                    value: '选项1',
+                    label: '黄金糕'
+                }, {
+                    value: '选项2',
+                    label: '双皮奶'
+                }, {
+                    value: '选项3',
+                    label: '蚵仔煎'
+                }],
+                monthOptions:[],
+                typeOptions:[{
+                    value: 0,
+                    label: '不限'
+                },{
+                    value: 1,
+                    label: '原创'
+                },{
+                    value: 2,
+                    label: '转载'
+                },{
+                    value: 3,
+                    label: '翻译'
+                }],
+
+                //筛选条件
+                filterYear:"",
+                filterMonth:"",
+                filterType:"",
+                keyWord:""
+            };
+        },
+        methods:{
+            //打开子菜单的回调
+            handleOpen(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            //关闭子菜单的回调
+            handleClose(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            //选中菜单项时的回调
+            handleSelect(key,keyPath){
+                this.currentPage=key
+                console.log(key, keyPath);
+            },
+            showPage(index){
+                return  this.currentPage==index;
+            },
+            //标签页被点击时的事件回调
+            tabClick(tab, event) {
+                console.log(tab, event);
+                console.log(this.activeTab)
+            }
+
+        },
+        computed:{
+            //页面不匹配时是否出现默认页面
+            elseShow(){
+                return this.pages.indexOf(this.currentPage) < 0;
+            }
+        },
+        mounted:function () {
+            function  initOptions(){
+                let date = new Date();
+                for(let i=1;i <= 12;i++){
+                    this.monthOptions.push({value:i+'',label: i+''});
+                }
+            }
+            initOptions();
+        }
+    });
+</script>
+</html>
